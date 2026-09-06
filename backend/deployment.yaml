@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: workday-backend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: workday-backend
+
+  template:
+    metadata:
+      labels:
+        app: workday-backend
+
+    spec:
+      containers:
+        - name: backend
+          image: workday-backend:v1
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 4001
+
+          envFrom:
+            - secretRef:
+                name: workday-backend-secret
+
+          env:
+            - name: NODE_OPTIONS
+              value: "--dns-result-order=ipv4first"
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
