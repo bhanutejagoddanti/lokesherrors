@@ -21,6 +21,15 @@ app.use(express.json());
 app.use('/user', userRoutes);
 app.use('/events', eventRoutes);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use (EADDRINUSE). Another process (e.g. Kubernetes LoadBalancer) is already listening on this port.`);
+    } else {
+        console.error('Server error:', err);
+    }
+    process.exit(1);
 });
