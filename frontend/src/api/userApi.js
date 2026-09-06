@@ -32,7 +32,10 @@ export const logoutApi = async () => {
 };
 
 export function getGoogleOAuthUrl({ role = 'USER', rememberMe = false } = {}) {
-    const base = import.meta.env.VITE_BASE_URL || '';
+    const base =
+        import.meta.env.VITE_BASE_URL ||
+        import.meta.env.VITE_API_URL ||
+        'http://localhost:8080';
     const params = new URLSearchParams({
         role: String(role).toUpperCase(),
         rememberMe: String(Boolean(rememberMe)),

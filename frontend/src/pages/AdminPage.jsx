@@ -11,6 +11,9 @@ import {
   getEventRegistrantsApi,
   toggleEventAvailabilityApi,
 } from '../api/eventApi';
+import SurgeMetricsDashboard from '../components/SurgeMetricsDashboard';
+import KubernetesStatusBar from '../components/KubernetesStatusBar';
+import { BarChart3, CalendarDays } from 'lucide-react';
 
 const CATEGORIES = ['Technology', 'Design', 'Engineering', 'Leadership', 'Business', 'Other'];
 
@@ -397,6 +400,7 @@ function RegistrantsModal({ event, onClose }) {
 
 /* ── Main Admin Page ── */
 export default function AdminPage({ user, onLogout, events, eventsLoading, eventsError, onRefreshEvents }) {
+  const [adminTab, setAdminTab] = useState('metrics');
   const [search, setSearch] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState(null);
@@ -486,96 +490,140 @@ export default function AdminPage({ user, onLogout, events, eventsLoading, event
         </div>
       </header>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {/* Kubernetes Cluster Status Telemetry Bar */}
+      <KubernetesStatusBar onRefreshTriggered={onRefreshEvents} />
 
-        {/* Page Title */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium mb-3">
-              <ShieldCheck className="w-3.5 h-3.5" /> Admin Panel
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Event Management</h1>
-            <p className="text-slate-400 text-sm mt-1.5">Create, manage, and monitor events visible to all registered users.</p>
-          </div>
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+        {/* View Switcher Tabs */}
+        <div className="flex items-center gap-3 border-b border-slate-800 pb-2">
           <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 transition-all duration-200 cursor-pointer shrink-0"
+            onClick={() => setAdminTab('metrics')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              adminTab === 'metrics'
+                ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80'
+            }`}
           >
-            <Plus className="w-4 h-4" /> Add Event
+            <BarChart3 className="w-4 h-4" />
+            <span>Surge & Cluster Metrics</span>
+            <span className="relative flex h-2 w-2 ml-1">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          </button>
+
+          <button
+            onClick={() => setAdminTab('events')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              adminTab === 'events'
+                ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80'
+            }`}
+          >
+            <CalendarDays className="w-4 h-4" />
+            <span>Event Management ({total})</span>
           </button>
         </div>
 
-        {/* Action error banner */}
-        {actionError && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{actionError}</span>
-            <button onClick={() => setActionError('')} className="ml-auto cursor-pointer text-rose-300 hover:text-white"><X className="w-3.5 h-3.5" /></button>
-          </div>
+        {/* TAB 1: Surge & Cluster Metrics Dashboard */}
+        {adminTab === 'metrics' && (
+          <SurgeMetricsDashboard events={events} />
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard label="Total Events" value={total} sub="published to users" />
-          <StatCard label="Total Seats" value={totalSeats} sub="across all events" color="text-blue-400" />
-          <StatCard label="Categories" value={categories} sub="event types" color="text-purple-400" />
-        </div>
+        {/* TAB 2: Event Management Content */}
+        {adminTab === 'events' && (
+          <div className="space-y-8">
+            {/* Page Title */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium mb-3">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Admin Panel
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Event Management</h1>
+                <p className="text-slate-400 text-sm mt-1.5">Create, manage, and monitor events visible to all registered users.</p>
+              </div>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 transition-all duration-200 cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" /> Add Event
+              </button>
+            </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search by name, location, or category…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-10 py-2.5 bg-slate-900/60 border border-slate-800 focus:border-indigo-500 focus:ring-indigo-500/30 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-4 transition-all duration-200"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer">
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+            {/* Action error banner */}
+            {actionError && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{actionError}</span>
+                <button onClick={() => setActionError('')} className="ml-auto cursor-pointer text-rose-300 hover:text-white"><X className="w-3.5 h-3.5" /></button>
+              </div>
+            )}
 
-        {/* Event List */}
-        <section>
-          <p className="text-xs text-slate-500 font-medium mb-3">
-            Showing {filtered.length} of {total} event{total !== 1 ? 's' : ''}
-            {search && <span className="text-indigo-400"> for "{search}"</span>}
-          </p>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <StatCard label="Total Events" value={total} sub="published to users" />
+              <StatCard label="Total Seats" value={totalSeats} sub="across all events" color="text-blue-400" />
+              <StatCard label="Categories" value={categories} sub="event types" color="text-purple-400" />
+            </div>
 
-          {eventsLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Spinner className="h-8 w-8 text-indigo-400" />
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by name, location, or category…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-900/60 border border-slate-800 focus:border-indigo-500 focus:ring-indigo-500/30 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-4 transition-all duration-200"
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
-          ) : eventsError ? (
-            <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-8 text-center">
-              <AlertCircle className="w-8 h-8 text-rose-400 mx-auto mb-2" />
-              <p className="text-rose-400 font-medium">{eventsError}</p>
-              <button onClick={onRefreshEvents} className="mt-3 text-xs text-slate-400 hover:text-slate-200 underline cursor-pointer">Retry</button>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-12 text-center">
-              <LayoutGrid className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-              <p className="text-slate-400 font-medium">No events found</p>
-              <p className="text-slate-600 text-sm mt-1">Try adjusting your search or add a new event.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filtered.map(ev => (
-                <EventRow
-                  key={ev.id}
-                  event={ev}
-                  onRemove={(id) => setConfirmRemoveId(id)}
-                  onToggle={handleToggle}
-                  onViewRegistrants={setViewRegistrantsEvent}
-                  loadingId={togglingId}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+
+            {/* Event List */}
+            <section>
+              <p className="text-xs text-slate-500 font-medium mb-3">
+                Showing {filtered.length} of {total} event{total !== 1 ? 's' : ''}
+                {search && <span className="text-indigo-400"> for "{search}"</span>}
+              </p>
+
+              {eventsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Spinner className="h-8 w-8 text-indigo-400" />
+                </div>
+              ) : eventsError ? (
+                <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-8 text-center">
+                  <AlertCircle className="w-8 h-8 text-rose-400 mx-auto mb-2" />
+                  <p className="text-rose-400 font-medium">{eventsError}</p>
+                  <button onClick={onRefreshEvents} className="mt-3 text-xs text-slate-400 hover:text-slate-200 underline cursor-pointer">Retry</button>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-12 text-center">
+                  <LayoutGrid className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+                  <p className="text-slate-400 font-medium">No events found</p>
+                  <p className="text-slate-600 text-sm mt-1">Try adjusting your search or add a new event.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filtered.map(ev => (
+                    <EventRow
+                      key={ev.id}
+                      event={ev}
+                      onRemove={(id) => setConfirmRemoveId(id)}
+                      onToggle={handleToggle}
+                      onViewRegistrants={setViewRegistrantsEvent}
+                      loadingId={togglingId}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

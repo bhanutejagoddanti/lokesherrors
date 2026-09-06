@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   MapPin, Clock, Calendar, Users, CheckCircle2, ChevronRight,
-  X, Sparkles, LogOut, AlertCircle, Ticket, Loader2, RefreshCw,
+  X, Sparkles, LogOut, AlertCircle, Ticket, Loader2, RefreshCw, Download,
 } from 'lucide-react';
 import { registerForEventApi } from '../api/eventApi';
+import KubernetesStatusBar from '../components/KubernetesStatusBar';
 
 const CATEGORY_COLORS = {
   Technology: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
@@ -219,16 +220,53 @@ export default function EventRegistration({ user, onLogout, events = [], eventsL
               </div>
             </div>
 
-            <button
-              onClick={() => { setSuccess(null); handleClearSelection(); }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/30 cursor-pointer"
-            >
-              Browse More Events
-            </button>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                onClick={() => downloadCalendarInvite(success)}
+                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-indigo-500/50 text-indigo-300 hover:text-white text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Add to Calendar (.ics)</span>
+              </button>
+
+              <button
+                onClick={() => { setSuccess(null); handleClearSelection(); }}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/30 cursor-pointer"
+              >
+                Browse More Events
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
+  }
+
+  function downloadCalendarInvite(successData) {
+    const title = successData.event || 'SurgeShield Event';
+    const location = successData.location || 'Online';
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//SurgeShield//Registration//EN',
+      'BEGIN:VEVENT',
+      `SUMMARY:${title}`,
+      `DESCRIPTION:Your spot is confirmed for ${title}.`,
+      `LOCATION:${location}`,
+      `DTSTART:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      `DTEND:${new Date(Date.now() + 7200000).toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_invite.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   return (
@@ -264,6 +302,9 @@ export default function EventRegistration({ user, onLogout, events = [], eventsL
           </div>
         </div>
       </header>
+
+      {/* Kubernetes Cluster Status Telemetry Bar */}
+      <KubernetesStatusBar onRefreshTriggered={onRefreshEvents} />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
 
