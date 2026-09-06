@@ -9,8 +9,13 @@ spec:
     app: workday-backend
 
   ports:
-    - protocol: TCP
+    - name: http-8080
+      protocol: TCP
+      port: 8080
+      targetPort: 4001
+    - name: http-4001
+      protocol: TCP
       port: 4001
       targetPort: 4001
 
-  type: ClusterIP
+  type: LoadBalancer
