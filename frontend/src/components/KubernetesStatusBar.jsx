@@ -20,7 +20,7 @@ export default function KubernetesStatusBar({ onRefreshTriggered }) {
         status: 'healthy',
         pod: 'workday-backend (k8s)',
         latency: 3,
-        loadBalancer: { ports: [8080, 4001], algorithm: 'Round-Robin' },
+        loadBalancer: { ports: [8080, 4001], algorithm: 'Queue-Based FIFO (SurgeQueue)' },
         autoscaling: { minReplicas: 2, maxReplicas: 10, targetCpuUtilization: '50%' },
         memory: { heapUsedMb: 38 },
       });
@@ -107,7 +107,7 @@ export default function KubernetesStatusBar({ onRefreshTriggered }) {
               <Server className="w-3 h-3 text-indigo-400" /> Service Type
             </div>
             <div className="text-slate-200 font-semibold mt-0.5">LoadBalancer (Docker Desktop)</div>
-            <div className="text-slate-400 font-mono text-[10px]">Port 8080 & 4001 → 4001 TCP</div>
+            <div className="text-slate-400 font-mono text-[10px]">Port 8080 & 4001 · FIFO SurgeQueue</div>
           </div>
 
           <div className="bg-slate-900/60 p-2 rounded border border-slate-800">
